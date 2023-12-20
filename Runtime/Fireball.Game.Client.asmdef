@@ -1,0 +1,17 @@
+{
+    "name": "Fireball.Game.Client",
+    "rootNamespace": "",
+    "references": [
+        "GUID:e92b2da13722040cc98ad801da181a46",
+        "GUID:a2f4d7126634f49cdb7e9842821df1a9"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

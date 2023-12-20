@@ -1,0 +1,22 @@
+{
+  "name": "com.fireball.unitysdk",
+  "displayName": "Fireball SDK",
+  "version": "0.9.0",
+  "unity": "2019.2",
+  "keywords": [
+    "Fireball",
+    "Game server"
+  ],
+  "description": "Fireball\u2122 is the world's most high performance and feature rich Remote Games Server built upon almost two decades of hard earned battle experience. It's open architecture allows for game studios to easily deploy and maintain games logic and for operators to simply integrate into the action.",
+  "type": "library",
+  "samples": [
+    {
+      "displayName": "Slot Game Sample",
+      "description": "Simplest slot game sample with Fireball authorization and custom requests",
+      "path": "Samples/SlotSample"
+    }
+  ],
+  "dependencies": {
+    "com.unity.nuget.newtonsoft-json": "3.2.1"
+  }
+}

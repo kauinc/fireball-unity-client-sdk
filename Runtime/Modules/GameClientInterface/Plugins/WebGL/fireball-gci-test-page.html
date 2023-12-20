@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Fireball GCI Operator Page test</title>
+    <style>
+        body {
+            background-color: rgb(66, 66, 66);
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        .logo {
+            margin: 0 auto;
+            width: 300px;
+        }
+
+        .url-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .url-input {
+            width: 300px;
+            padding: 5px;
+        }
+
+        .load-button {
+            padding: 5px 10px;
+        }
+
+        .iframe-container {
+            margin: 20px auto;
+            width: 800px;
+            height: 450px;
+            background-color: black;
+            border-radius: 8px;
+        }
+
+        .label {
+            color: white;
+        }
+
+        .button-row {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .button {
+            margin: 0 10px;
+            padding: 5px 10px;
+        }
+
+        .button-input-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 10px;
+        }
+
+        .button-input {
+            width: 50px;
+            padding: 5px;
+        }
+
+        .events-list {
+            width: 640px;
+            height: 120px;
+            overflow-y: scroll;
+            color: wheat;
+            background-color: grey;
+            display: flex;
+            margin: auto;
+            justify-content: left;
+            text-align: left;
+        }
+    </style>
+
+<body>
+    <div class="container">
+        <img class="logo" src="https://fireballserver.com/images/fireball/fireball-logo-new.png" alt="Logo">
+
+        <div class="url-container">
+            <input id="url-input" class="url-input" type="text" placeholder="Enter URL">
+            <button class="load-button" onclick=onClickLoadUrl()>Load</button>
+        </div>
+
+        <div class="iframe-container">
+            <iframe id="url-iframe" src="" frameborder="0" width="800px" height="450px"></iframe>
+        </div>
+
+        <p class="label">Operator's GCI event - Settings:</p>
+        <div class="button-row">
+            <button class="button" id="pause-game" onclick=onClickPauseGame()>Pause</button>
+            <button class="button" id="audio-mute" onclick=onClickMuteAudio()>Mute</button>
+            <button class="button" id="bet-turbo" onclick=onClickToggleBetTurbo()>BetTurbo</button>
+            <button class="button" id="show-help" onclick=onClickShowHelp()>Show Help</button>
+            <button class="button" id="show-paytable" onclick=onClickShowPaytable()>Show Paytable</button>
+        </div>
+
+        <p class="label">Operator's GCI event - Game:</p>
+        <div class="button-row">
+            <button class="button" onclick=onClickStopAutoplay()>Stop Autoplay</button>
+            <div class="button-input-container">
+                <input id="bet-input" class="button-input" type="text" placeholder="0">
+                <button id="bet-update" class="load-button" onclick=onClickUpdateBet()>Update Bet</button>
+            </div>
+            <button class="button" id="bet-place" onclick=onClickPlaceBet()>Place Bet</button>
+            <div class="button-input-container">
+                <input id="balance-input" class="button-input" type="text" placeholder="0">
+                <button id="balance-update" class="load-button" onclick=onClickUpdateBalance()>Update Balance</button>
+            </div>
+        </div>
+
+        <p class="label">Operator's GCI event - Control:</p>
+        <div class="button-row">
+            <button class="button" id="confirm-action" onclick=onClickConfirmAction()>Confirm Action</button>
+            <button class="button" id="close-game" onclick=onClickCloseGame()>Close Game</button>
+        </div>
+
+        <p class="label">Game's GCI event received:</p>
+        <div class="events-list">
+            <ul id="game-events-list" style="list-style-type: none;">
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        var _url = "";
+        var _init = false;
+        var _fireballGCI = null;
+        var _fireballEvents = null;
+
+        var _pause = false;
+        var _mute = false;
+        var _betTurbo = false;
+        var _showingHelp = 2;
+        var _showingPaytable = 2;
+
+        var _bet = 100;
+        var _balance = 100000;
+
+        var _iframe = document.getElementById("url-iframe");
+        var _urlInput = document.getElementById("url-input");
+
+        var _buttonPause = document.getElementById("pause-game");
+        var _buttonMute = document.getElementById("audio-mute");
+        var _buttonBetTurbo = document.getElementById("bet-turbo");
+        var _buttonShowHelp = document.getElementById("show-help");
+        var _buttonShowPaytable = document.getElementById("show-paytable");
+
+        var _betInput = document.getElementById("bet-input");
+        var _balanceInput = document.getElementById("balance-input");
+
+
+        function onClickLoadUrl() {
+            _url = _urlInput.value;
+            console.log("[OPERATOR-GCI] onClickLoadUrl: " + _url);
+            _iframe.src = _url;
+
+            AutoInit();
+        }
+
+        function onClickPauseGame() {
+            _pause = !_pause;
+            UpdateUI();
+            console.log("[OPERATOR-GCI] onClickPauseGame: " + _pause);
+            if (CheckInit()) {
+                _fireballGCI.operatorPauseGame(_pause);
+            }
+        }
+        function onClickMuteAudio() {
+            _mute = !_mute;
+            UpdateUI();
+            console.log("[OPERATOR-GCI] onClickMuteAudio: " + _mute);
+            if (CheckInit()) {
+                _fireballGCI.operatorAudioVolume(_mute ? 0 : 1);
+            }
+        }
+        function onClickToggleBetTurbo() {
+            _betTurbo = !_betTurbo;
+            UpdateUI();
+            console.log("[OPERATOR-GCI] onClickToggleBetTurbo: " + _betTurbo);
+            if (CheckInit()) {
+                _fireballGCI.operatorBetTurbo(_betTurbo);
+            }
+        }
+        function onClickShowHelp() {
+            _showingHelp = 2; //!_showingHelp;
+            UpdateUI();
+            console.log("[OPERATOR-GCI] onClickShowHelp: " + _showingHelp);
+            if (CheckInit()) {
+                _fireballGCI.operatorVisibleHelp(_showingHelp);
+            }
+        }
+        function onClickShowPaytable() {
+            _showingPaytable = 2; //!_showingPaytable;
+            UpdateUI();
+            console.log("[OPERATOR-GCI] onClickShowPaytable: " + _showingPaytable);
+            if (CheckInit()) {
+                _fireballGCI.operatorVisiblePaytable(_showingPaytable);
+            }
+        }
+
+        function onClickStopAutoplay() {
+            console.log("[OPERATOR-GCI] onClickStopAutoplay");
+            if (CheckInit()) {
+                _fireballGCI.operatorStopAutoplay();
+            }
+        }
+        function onClickUpdateBet() {
+            _bet = +_betInput.value;
+            UpdateUI();
+            console.log("[OPERATOR-GCI] onClickUpdateBet: " + _bet);
+            if (CheckInit()) {
+                _fireballGCI.operatorBetUpdate(_bet);
+            }
+        }
+        function onClickPlaceBet() {
+            console.log("[OPERATOR-GCI] onClickPlaceBet: " + _bet);
+            if (CheckInit()) {
+                _fireballGCI.operatorBetPlace(_bet);
+            }
+        }
+        function onClickUpdateBalance() {
+            _balance = +_balanceInput.value;
+            UpdateUI();
+            console.log("[OPERATOR-GCI] onClickUpdateBalance: " + _balance);
+            if (CheckInit()) {
+                _fireballGCI.operatorUpdateBalance();
+            }
+        }
+
+        function onClickConfirmAction() {
+            console.log("[OPERATOR-GCI] onClickConfirmAction");
+            if (CheckInit()) {
+                _fireballGCI.operatorConfirmedAction();
+            }
+        }
+        function onClickCloseGame() {
+            console.log("[OPERATOR-GCI] onClickCloseGame");
+            if (CheckInit()) {
+                _fireballGCI.operatorCloseGame();
+            }
+        }
+
+        function ReceiveEventFromGame(event) {
+            var eventName = event.detail.name;
+            var eventValue = event.detail.value;
+
+            console.log("[OPERATOR-GCI] Received event from Game: " + eventName);
+            AddGameEvent(eventName, eventValue);
+            if (CheckInit()) {
+                switch (eventName) {
+                    case _fireballEvents.FROM_GAME.AUDIO_VOLUME:
+                        _mute = eventValue > 0;
+                        UpdateUI();
+                        break;
+                    case _fireballEvents.FROM_GAME.BET_TURBO:
+                        _betTurbo = eventValue;
+                        UpdateUI();
+                        break;
+                    case _fireballEvents.FROM_GAME.BALANCE_UPDATED:
+                        _balance = eventValue;
+                        UpdateUI();
+                        break;
+                    case _fireballEvents.FROM_GAME.BET_UPDATE:
+                        _bet = eventValue;
+                        UpdateUI();
+                        break;
+                    case _fireballEvents.FROM_GAME.OPEN_URL:
+                        window.open(eventValue, '_blank').focus();
+                        break;
+                }
+            }
+        }
+
+        function AddGameEvent(eventName, eventValue) {
+            var li = document.createElement("li");
+            var dataSpan = document.createElement("span");
+            var eventSpan = document.createElement("span");
+            dataSpan.innerText = "[" + new Date().toLocaleTimeString() + "] ";
+            dataSpan.style.color = "#525252";
+            eventSpan.innerText = (eventValue ? eventName + " - " + eventValue : eventName);
+            li.append(dataSpan);
+            li.append(eventSpan);
+            document.getElementById("game-events-list").prepend(li);
+        }
+
+        function UpdateUI() {
+            _buttonPause.innerText = "Pause: " + _pause;
+            _buttonMute.innerText = "Mute: " + _mute;
+            _buttonBetTurbo.innerText = "BetTurbo: " + _betTurbo;
+            _buttonShowHelp.innerHTML = _showingHelp == 2 ? "Toggle Help" : (_showingHelp == 1 ? "Hide Help" : "Show Help");
+            _buttonShowPaytable.innerHTML = _showingHelp == 2 ? "Toggle Paytable" : (_showingPaytable == 1 ? "Hide Paytable" : "Show Paytable");
+
+            _betInput.value = +_bet;
+            _balanceInput.value = +_balance;
+        }
+
+        function AutoInit() {
+            if (!CheckInit()) {
+                setTimeout(() => {
+                    AutoInit();
+                }, 100);
+            }
+        }
+
+        function CheckInit() {
+            try {
+                if (_iframe.contentWindow.fireballGCI) {
+                    if (!_init) {
+                        _init = true;
+                        _fireballGCI = _iframe.contentWindow.fireballGCI;
+                        _fireballEvents = _iframe.contentWindow.FIREBALL_EVENTS;
+                        // subscribe for messages from game
+                        _fireballGCI.addEventListener(_fireballEvents.FROM_GAME.LOADING_STARTED, ReceiveEventFromGame);
+                        _fireballGCI.addEventListener(_fireballEvents.FROM_GAME.LOADING_PROGRESS, ReceiveEventFromGame);
+                        _fireballGCI.addEventListener(_fireballEvents.FROM_GAME.LOADING_COMPLETE, ReceiveEventFromGame);
+                        _fireballGCI.addEventListener(_fireballEvents.FROM_GAME.READY_PLAY, ReceiveEventFromGame);
+                        _fireballGCI.addEventListener(_fireballEvents.FROM_GAME.AUDIO_VOLUME, ReceiveEventFromGame);
+                        _fireballGCI.addEventListener(_fireballEvents.FROM_GAME.BET_TURBO, ReceiveEventFromGame);
+                        _fireballGCI.addEventListener(_fireballEvents.FROM_GAME.BET_PLACED, ReceiveEventFromGame);
+                        _fireballGCI.addEventListener(_fireballEvents.FROM_GAME.BET_RESULT, ReceiveEventFromGame);
+                        _fireballGCI.addEventListener(_fireballEvents.FROM_GAME.BET_UPDATE, ReceiveEventFromGame);
+                        _fireballGCI.addEventListener(_fireballEvents.FROM_GAME.BALANCE_UPDATED, ReceiveEventFromGame);
+                        _fireballGCI.addEventListener(_fireballEvents.FROM_GAME.JACKPOT_UPDATED, ReceiveEventFromGame);
+                        _fireballGCI.addEventListener(_fireballEvents.FROM_GAME.AUTOPLAY_STARTED, ReceiveEventFromGame);
+                        _fireballGCI.addEventListener(_fireballEvents.FROM_GAME.AUTOPLAY_COMPLETE, ReceiveEventFromGame);
+                        _fireballGCI.addEventListener(_fireballEvents.FROM_GAME.BONUS_FEATURE_STARTED, ReceiveEventFromGame);
+                        _fireballGCI.addEventListener(_fireballEvents.FROM_GAME.BONUS_FEATURE_COMPLETE, ReceiveEventFromGame);
+                        _fireballGCI.addEventListener(_fireballEvents.FROM_GAME.OPEN_URL, ReceiveEventFromGame);
+                        _fireballGCI.addEventListener(_fireballEvents.FROM_GAME.SPLASH_SCREEN_VISIBLE, ReceiveEventFromGame);
+                        _fireballGCI.addEventListener(_fireballEvents.FROM_GAME.CONFIRM_VISIBLE, ReceiveEventFromGame);
+                        _fireballGCI.addEventListener(_fireballEvents.FROM_GAME.BUY_FEATURE_VISIBLE, ReceiveEventFromGame);
+                        _fireballGCI.addEventListener(_fireballEvents.FROM_GAME.OPEN_DEPOSIT_MENU, ReceiveEventFromGame);
+                        _fireballGCI.addEventListener(_fireballEvents.FROM_GAME.ERROR_MESSAGE, ReceiveEventFromGame);
+                        _fireballGCI.addEventListener(_fireballEvents.FROM_GAME.LOCK_INTERACTION, ReceiveEventFromGame);
+                        _fireballGCI.addEventListener(_fireballEvents.FROM_GAME.CLOSED, ReceiveEventFromGame);
+                    }
+                    return true;
+                }
+                else {
+                    console.error("[OPERATOR-GCI] fireballGCI = null");
+                }
+            }
+            catch (e) {
+                console.error("[OPERATOR-GCI] fireballGCI = null! ", e);
+            }
+            return false;
+        }
+
+        UpdateUI();
+    </script>
+</body>
+
+</html>
